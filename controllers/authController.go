@@ -3,7 +3,10 @@ package controllers
 import (
 	"ambassador/database"
 	"ambassador/models"
+	"strconv"
+	"time"
 
+	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -58,5 +61,33 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(user)
+	/* JWT token */
+	claims := jwt.StandardClaims{
+		Subject:   strconv.Itoa(int(user.Id)),
+		ExpiresAt: jwt.At(time.Now().Add(time.Hour * 24)),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString([]byte("secret"))
+
+	if err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Invalid Credentials",
+		})
+	}
+
+	/* Cookie */
+	cookie := fiber.Cookie{
+		Name:     "jwt",
+		Value:    signedToken,
+		Expires:  time.Now().Add(time.Hour * 24),
+		HTTPOnly: true,
+	}
+	c.Cookie(&cookie)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
 }

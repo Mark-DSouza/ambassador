@@ -3,6 +3,7 @@ module ambassador
 go 1.20
 
 require (
+	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/gofiber/fiber/v2 v2.50.0
 	golang.org/x/crypto v0.14.0
 	gorm.io/driver/mysql v1.5.2
