@@ -98,7 +98,7 @@ func User(c *fiber.Ctx) error {
 	if err != nil || !token.Valid {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{
-			"message": "Invalid Credentials",
+			"message": "Unauthorized",
 		})
 	}
 
@@ -108,4 +108,19 @@ func User(c *fiber.Ctx) error {
 	database.DB.Where("id = ?", claims.Subject).First(&user)
 
 	return c.JSON(user)
+}
+
+func Logout(c *fiber.Ctx) error {
+	cookie := fiber.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookie)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
 }
