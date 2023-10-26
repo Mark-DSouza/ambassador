@@ -88,3 +88,24 @@ func Login(c *fiber.Ctx) error {
 		"message": "success",
 	})
 }
+
+func User(c *fiber.Ctx) error {
+	tokenString := c.Cookies("jwt")
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secret"), nil
+	})
+
+	if err != nil || !token.Valid {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "Invalid Credentials",
+		})
+	}
+
+	claims := token.Claims.(*jwt.StandardClaims)
+
+	var user models.User
+	database.DB.Where("id = ?", claims.Subject).First(&user)
+
+	return c.JSON(user)
+}
